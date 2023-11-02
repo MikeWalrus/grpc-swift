@@ -21,4 +21,5 @@ internal enum GRPCHeaderName {
   static let statusCode = "grpc-status"
   static let statusMessage = "grpc-message"
   static let contentType = "content-type"
+  static let statusDetails = "grpc-status-details-bin"
 }

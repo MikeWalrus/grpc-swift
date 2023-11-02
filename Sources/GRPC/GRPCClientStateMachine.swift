@@ -735,7 +735,8 @@ extension GRPCClientStateMachine.State {
     // Extract the "Status" and "Status-Message"
     let code = self.readStatusCode(from: trailers) ?? .unknown
     let message = self.readStatusMessage(from: trailers)
-    return .init(code: code, message: message)
+    let details = self.readStatusDetails(from: trailers)
+    return .init(code: code, message: message, details: details)
   }
 
   private func readStatusCode(from trailers: HPACKHeaders) -> GRPCStatus.Code? {
@@ -747,6 +748,10 @@ extension GRPCClientStateMachine.State {
   private func readStatusMessage(from trailers: HPACKHeaders) -> String? {
     return trailers.first(name: GRPCHeaderName.statusMessage)
       .map(GRPCStatusMessageMarshaller.unmarshall)
+  }
+
+  private func readStatusDetails(from trailers: HPACKHeaders) -> String? {
+    return trailers.first(name: GRPCHeaderName.statusDetails)
   }
 
   /// Parses a "Trailers-Only" response from the server into a `GRPCStatus`.

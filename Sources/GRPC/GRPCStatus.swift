@@ -36,7 +36,7 @@ public struct GRPCStatus: Error, Sendable {
       if isKnownUniquelyReferenced(&self.storage) {
         self.storage.message = newValue
       } else {
-        self.storage = .makeStorage(message: newValue, cause: self.storage.cause)
+        self.storage = .makeStorage(message: newValue, cause: self.storage.cause, details: self.storage.details)
       }
     }
   }
@@ -51,7 +51,22 @@ public struct GRPCStatus: Error, Sendable {
       if isKnownUniquelyReferenced(&self.storage) {
         self.storage.cause = newValue
       } else {
-        self.storage = .makeStorage(message: self.storage.message, cause: newValue)
+        self.storage = .makeStorage(message: self.storage.message, cause: newValue, details: self.storage.details)
+      }
+    }
+  }
+
+  /// grpc-status-details-bin
+  /// **not** included in equality checks.
+  public var details: String? {
+    get {
+      return self.storage.details
+    }
+    set {
+      if isKnownUniquelyReferenced(&self.storage) {
+        self.storage.details = newValue
+      } else {
+        self.storage = .makeStorage(message: self.storage.message, cause: self.storage.cause, details: newValue)
       }
     }
   }
@@ -63,21 +78,23 @@ public struct GRPCStatus: Error, Sendable {
     //
     // Alternatively: `GRPCStatus` could hold a storage optionally however doing so made the code
     // quite unreadable.
-    private static let none = Storage(message: nil, cause: nil)
+    private static let none = Storage(message: nil, cause: nil, details: nil)
 
-    private init(message: String?, cause: Error?) {
+    private init(message: String?, cause: Error?, details: String?) {
       self.message = message
       self.cause = cause
+      self.details = details
     }
 
     fileprivate var message: Optional<String>
     fileprivate var cause: Optional<Error>
+    fileprivate var details: Optional<String>
 
-    fileprivate static func makeStorage(message: String?, cause: Error?) -> Storage {
+    fileprivate static func makeStorage(message: String?, cause: Error?, details: String?) -> Storage {
       if message == nil, cause == nil {
         return Storage.none
       } else {
-        return Storage(message: message, cause: cause)
+        return Storage(message: message, cause: cause, details: details)
       }
     }
   }
@@ -91,9 +108,9 @@ public struct GRPCStatus: Error, Sendable {
     self.init(code: code, message: message, cause: nil)
   }
 
-  public init(code: Code, message: String? = nil, cause: Error? = nil) {
+  public init(code: Code, message: String? = nil, cause: Error? = nil, details: String? = nil) {
     self.code = code
-    self.storage = .makeStorage(message: message, cause: cause)
+    self.storage = .makeStorage(message: message, cause: cause, details: details)
   }
 
   // Frequently used "default" statuses.
